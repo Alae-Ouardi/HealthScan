@@ -51,6 +51,13 @@ final class History {
         return entries.isEmpty();
     }
 
+    /** All saved products, newest first. */
+    List<Product> products() {
+        List<Product> out = new ArrayList<>(entries.size());
+        for (Entry e : entries) out.add(e.product);
+        return out;
+    }
+
     /** Entries whose name, brand or barcode contain the query (case-insensitive). */
     List<Entry> search(String query) {
         String q = query.trim().toLowerCase(Locale.ROOT);
@@ -91,9 +98,11 @@ final class History {
         }
     }
 
-    private static JSONObject toJson(Product p) throws Exception {
+    /** Product as JSON; also used to hand a product to the product page. */
+    static JSONObject toJson(Product p) throws Exception {
         JSONObject o = new JSONObject().put("code", p.code).put("name", p.name)
-                .put("brand", p.brand).put("food", p.food).put("organic", p.organic);
+                .put("brand", p.brand).put("food", p.food).put("organic", p.organic)
+                .put("img", p.imageUrl);
         if (p.nutrition != null) {
             Product.Nutrition n = p.nutrition;
             o.put("n", new JSONArray().put(n.sugar).put(n.satFat).put(n.salt)
@@ -110,7 +119,7 @@ final class History {
         return o.put("a", adds).put("i", ings);
     }
 
-    private static Product fromJson(JSONObject o) throws Exception {
+    static Product fromJson(JSONObject o) throws Exception {
         Product.Nutrition n = null;
         JSONArray na = o.optJSONArray("n");
         if (na != null) {
@@ -118,7 +127,7 @@ final class History {
                     (float) na.getDouble(2), (float) na.getDouble(3), (float) na.getDouble(4));
         }
         Product p = new Product(o.getString("code"), o.getString("name"), o.optString("brand"),
-                o.getBoolean("food"), o.optBoolean("organic"), n);
+                o.getBoolean("food"), o.optBoolean("organic"), n, o.optString("img"));
         JSONArray adds = o.optJSONArray("a");
         for (int i = 0; adds != null && i < adds.length(); i++) {
             p.add(adds.getJSONObject(i).getString("n"), adds.getJSONObject(i).getBoolean("r"));

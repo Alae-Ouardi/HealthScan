@@ -17,7 +17,8 @@ final class OpenFacts {
     private static final String OFF = "https://world.openfoodfacts.org/api/v2/product/";
     private static final String OBF = "https://world.openbeautyfacts.org/api/v2/product/";
     private static final String FIELDS =
-            "?fields=product_name,brands,nutriments,additives_tags,labels_tags,ingredients";
+            "?fields=product_name,brands,nutriments,additives_tags,labels_tags,ingredients,"
+                    + "image_front_url,image_url";
     private static final int TIMEOUT_MS = 6000;
 
     static Product lookup(String code) {
@@ -62,7 +63,10 @@ final class OpenFacts {
                     (float) nu.optDouble("saturated-fat_100g", 0), (float) nu.optDouble("salt_100g", 0),
                     (float) nu.optDouble("fiber_100g", 0), (float) nu.optDouble("proteins_100g", 0));
         }
-        Product out = new Product(code, name, brand, food, organic, n);
+        String image = p.optString("image_front_url", "").trim();
+        if (image.isEmpty()) image = p.optString("image_url", "").trim();
+        if (!image.startsWith("https://")) image = ""; // only load photos over HTTPS
+        Product out = new Product(code, name, brand, food, organic, n, image);
         if (food) {
             JSONArray tags = p.optJSONArray("additives_tags");
             for (int i = 0; tags != null && i < tags.length(); i++) {

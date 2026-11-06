@@ -13,6 +13,10 @@ written for this project; no code, artwork or text from any other scanner app is
 - **Open Food Facts** and **Open Beauty Facts** — open databases, data under the
   Open Database License (ODbL). Looked up by barcode only when you scan or search.
 
-## Sample products
-The built-in sample products ("Fizzy Cola Drink", "SampleBrand", …) are made-up
-placeholders, not real products or brands.
+## Product photos
+Product photos are loaded from Open Food Facts / Open Beauty Facts and are licensed by their
+contributors under Creative Commons Attribution-ShareAlike (CC BY-SA). The README
+screenshots show such photos.
+
+## Icons
+The vector icons follow Google's Material Icons shapes (Apache License 2.0).

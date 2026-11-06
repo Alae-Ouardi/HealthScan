@@ -31,6 +31,7 @@ Overall score is 0–100, higher = healthier, shown on a red→orange→yellow�
 
 ### Alternatives (estimated)
 - Same category, score at least 15 points higher than the scanned item, top 3 by score.
+- Chosen from the products in the scan history (there is no built-in catalog).
 
 ## Product data source
 
@@ -39,9 +40,11 @@ Scanned products are looked up by barcode from the **open** collaborative databa
 - Open Beauty Facts — `https://world.openbeautyfacts.org/api/v2/product/<barcode>` (cosmetics)
 
 These are free, open-data APIs (ODbL). Their fields (nutriments, additives_tags,
-labels_tags, ingredients) are mapped into our own model and scored with the rules
-above — the scoring is ours, not theirs. The built-in sample catalog is the offline
-fallback. No data comes from Yuka. Network is used only on an explicit barcode scan.
+labels_tags, ingredients, image_front_url) are mapped into our own model and scored with
+the rules above — the scoring is ours, not theirs. Products already scanned are kept in the
+on-device history, which is the offline fallback and the source for name search.
+No data comes from Yuka. Network is used only on an explicit barcode scan or search, and to
+load that product's photo.
 
 ## Values table
 See `mechanics.json` for the machine-readable list. All marked `estimated` —

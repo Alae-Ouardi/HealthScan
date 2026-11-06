@@ -39,6 +39,7 @@ final class Product {
     }
 
     final String code, name, brand;
+    final String imageUrl; // product photo from the open databases; empty when unknown
     final boolean food, organic;
     final Nutrition nutrition; // null for cosmetics or when unknown
     final List<Additive> additives = new ArrayList<>();
@@ -46,12 +47,18 @@ final class Product {
 
     Product(String code, String name, String brand, boolean food, boolean organic,
             Nutrition nutrition) {
+        this(code, name, brand, food, organic, nutrition, "");
+    }
+
+    Product(String code, String name, String brand, boolean food, boolean organic,
+            Nutrition nutrition, String imageUrl) {
         this.code = code;
         this.name = name;
         this.brand = brand;
         this.food = food;
         this.organic = organic;
         this.nutrition = nutrition;
+        this.imageUrl = imageUrl == null ? "" : imageUrl;
     }
 
     Product add(String additive, boolean risky) {
