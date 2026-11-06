@@ -27,8 +27,10 @@ final class Product {
         }
     }
 
-    /** Cosmetic ingredient; hazard 0 = low, 1 = moderate, 2 = high. */
+    /** Cosmetic ingredient with a hazard level: {@link #LOW}, {@link #MODERATE} or {@link #HIGH}. */
     static final class Ingredient {
+        static final int LOW = 0, MODERATE = 1, HIGH = 2;
+
         final String name;
         final int hazard;
 

@@ -17,28 +17,35 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 /** Theme colors and the small view builders shared by every screen. */
 final class Ui {
-    static final String PREFS = "healthscan", KEY_DARK = "dark";
+    private static final String PREFS = "healthscan", KEY_DARK = "dark";
 
+    static final int WHITE = 0xFFFFFFFF;
     static final int GREEN = 0xFF1F9A55, GOOD_DOT = 0xFF46B464, BAD_DOT = 0xFFE05648;
+    static final int WARNING = 0xFFED9628;
     static final int ICON_BUTTON_DP = 40, ICON_DP = 22;
+    static final int PAGE_TITLE_SP = 20;
 
-    final Activity a;
+    private static final int FIELD_PAD_DP = 12, CLEAR_ICON_DP = 44;
+
+    final Activity activity;
     final boolean dark;
-    final int bg, top, card, text, weak, field, pointer, buttonFill;
+    final int bg, top, card, textColor, mutedColor, field, pointer, buttonFill;
 
-    Ui(Activity a) {
-        this.a = a;
-        this.dark = isDark(a);
+    Ui(Activity activity) {
+        this.activity = activity;
+        this.dark = isDark(activity);
         bg = dark ? 0xFF121316 : 0xFFF4F5F7;
         top = dark ? 0xFF181A1E : 0xFFFFFFFF;
         card = dark ? 0xFF202328 : 0xFFFFFFFF;
-        text = dark ? 0xFFF0F0F0 : 0xFF1A1C20;
-        weak = dark ? 0xFF9A9CA2 : 0xFF6E7076;
+        textColor = dark ? 0xFFF0F0F0 : 0xFF1A1C20;
+        mutedColor = dark ? 0xFF9A9CA2 : 0xFF6E7076;
         field = dark ? 0xFF0B0B0C : 0xFFF0F1F3;
         pointer = dark ? 0xFFFFFFFF : 0xFF1A1C20;
         buttonFill = dark ? 0xFF33363C : 0xFFE2E4E8;
@@ -54,8 +61,8 @@ final class Ui {
 
     /** Status and navigation bar colors matching the theme, with dark icons on light bars. */
     void paintWindow() {
-        a.getWindow().setStatusBarColor(top);
-        a.getWindow().setNavigationBarColor(bg);
+        activity.getWindow().setStatusBarColor(top);
+        activity.getWindow().setNavigationBarColor(bg);
         int flags = 0;
         if (!dark) {
             flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
@@ -63,13 +70,56 @@ final class Ui {
                 flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
             }
         }
-        a.getWindow().getDecorView().setSystemUiVisibility(flags);
+        activity.getWindow().getDecorView().setSystemUiVisibility(flags);
+    }
+
+    // ---- page structure ------------------------------------------------------
+
+    /** Padded column that holds a page's content. */
+    LinearLayout body() {
+        LinearLayout body = vertical();
+        body.setPadding(dp(16), dp(14), dp(16), dp(24));
+        return body;
+    }
+
+    /** Fixed header above a scrolling body; returns the scroll view. */
+    ScrollView setScreen(View header, LinearLayout body, boolean fillViewport) {
+        LinearLayout root = vertical();
+        root.setBackgroundColor(bg);
+        root.addView(header);
+        ScrollView scroll = new ScrollView(activity);
+        scroll.setFillViewport(fillViewport);
+        scroll.addView(body);
+        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
+        activity.setContentView(root);
+        return scroll;
+    }
+
+    /** Background panel of a page's top bar. */
+    LinearLayout topBarPanel() {
+        LinearLayout bar = vertical();
+        bar.setBackgroundColor(top);
+        bar.setPadding(dp(16), dp(14), dp(16), dp(12));
+        return bar;
+    }
+
+    /** Back button with a centered page title; {@code end} sits on the right (or a spacer). */
+    LinearLayout backTitleRow(String title, Runnable onBack, View end) {
+        LinearLayout row = horizontal();
+        ImageView back = iconButton(R.drawable.ic_back, "Back");
+        back.setOnClickListener(v -> onBack.run());
+        row.addView(back);
+        TextView t = text(title, PAGE_TITLE_SP, textColor, true);
+        t.setGravity(Gravity.CENTER);
+        row.addView(t, new LinearLayout.LayoutParams(0, -2, 1f));
+        row.addView(end != null ? end : gap(ICON_BUTTON_DP)); // spacer keeps the title centered
+        return row;
     }
 
     // ---- building blocks -----------------------------------------------------
 
     TextView text(String s, int sp, int color, boolean bold) {
-        TextView v = new TextView(a);
+        TextView v = new TextView(activity);
         v.setText(s);
         v.setTextSize(sp);
         v.setTextColor(color);
@@ -78,10 +128,10 @@ final class Ui {
     }
 
     Button button(String label) {
-        Button b = new Button(a);
+        Button b = new Button(activity);
         b.setText(label);
         b.setAllCaps(false);
-        b.setTextColor(text);
+        b.setTextColor(textColor);
         b.setBackground(rounded(buttonFill, 10));
         b.setPadding(dp(14), dp(6), dp(14), dp(6));
         b.setMinHeight(0);
@@ -91,9 +141,7 @@ final class Ui {
 
     /** Small square button showing only an icon; {@code label} is read by screen readers. */
     ImageView iconButton(int icon, String label) {
-        ImageView b = new ImageView(a);
-        b.setImageResource(icon);
-        b.setColorFilter(text, PorterDuff.Mode.SRC_IN);
+        ImageView b = icon(icon, textColor);
         b.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         int pad = dp((ICON_BUTTON_DP - ICON_DP) / 2);
         b.setPadding(pad, pad, pad, pad);
@@ -105,20 +153,25 @@ final class Ui {
         return b;
     }
 
+    /** Vector icon tinted with {@code color}. */
+    ImageView icon(int icon, int color) {
+        ImageView v = new ImageView(activity);
+        v.setImageResource(icon);
+        v.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        return v;
+    }
+
     /** Single-line input with a clear (x) icon that shows as soon as there is text. */
     FrameLayout clearableField(EditText input, String hint, String value, Runnable onCleared) {
         input.setSingleLine(true);
         input.setHint(hint);
         input.setText(value);
-        input.setTextColor(text);
-        input.setHintTextColor(weak);
+        input.setTextColor(textColor);
+        input.setHintTextColor(mutedColor);
         input.setBackground(rounded(field, 10));
-        // Room for the clear icon only while it shows, so the hint is never cut short.
-        input.setPadding(dp(12), dp(10), dp(value.isEmpty() ? 12 : 44), dp(10));
+        padForClear(input, value.isEmpty());
 
-        ImageView clear = new ImageView(a);
-        clear.setImageResource(R.drawable.ic_close);
-        clear.setColorFilter(weak, PorterDuff.Mode.SRC_IN);
+        ImageView clear = icon(R.drawable.ic_close, mutedColor);
         clear.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         clear.setContentDescription("Clear text");
         clear.setPadding(dp(10), dp(10), dp(10), dp(10));
@@ -128,21 +181,33 @@ final class Ui {
             input.requestFocus();
             if (onCleared != null) onCleared.run();
         });
+        onTextChanged(input, s -> {
+            clear.setVisibility(s.isEmpty() ? View.GONE : View.VISIBLE);
+            padForClear(input, s.isEmpty());
+        });
+
+        FrameLayout box = new FrameLayout(activity);
+        box.addView(input, new FrameLayout.LayoutParams(-1, -2));
+        box.addView(clear, new FrameLayout.LayoutParams(dp(CLEAR_ICON_DP), dp(CLEAR_ICON_DP),
+                Gravity.END | Gravity.CENTER_VERTICAL));
+        return box;
+    }
+
+    /** Room for the clear icon only while it shows, so the hint is never cut short. */
+    private void padForClear(EditText input, boolean empty) {
+        int pad = dp(FIELD_PAD_DP);
+        input.setPadding(pad, dp(10), empty ? pad : dp(CLEAR_ICON_DP), dp(10));
+    }
+
+    /** Calls {@code action} with the new text after every change. */
+    static void onTextChanged(EditText input, Consumer<String> action) {
         input.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int st, int c, int af) {}
             @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
             @Override public void afterTextChanged(Editable s) {
-                boolean empty = s.length() == 0;
-                clear.setVisibility(empty ? View.GONE : View.VISIBLE);
-                input.setPadding(dp(12), dp(10), dp(empty ? 12 : 44), dp(10));
+                action.accept(s.toString());
             }
         });
-
-        FrameLayout box = new FrameLayout(a);
-        box.addView(input, new FrameLayout.LayoutParams(-1, -2));
-        box.addView(clear, new FrameLayout.LayoutParams(dp(44), dp(44),
-                Gravity.END | Gravity.CENTER_VERTICAL));
-        return box;
     }
 
     LinearLayout card(int fill) {
@@ -156,13 +221,13 @@ final class Ui {
         LinearLayout r = horizontal();
         r.setPadding(0, dp(5), 0, dp(5));
         r.addView(text("● ", 14, good ? GOOD_DOT : BAD_DOT, false));
-        r.addView(text(label, 15, text, false), new LinearLayout.LayoutParams(0, -2, 1f));
-        r.addView(text(value, 14, weak, false));
+        r.addView(text(label, 15, textColor, false), new LinearLayout.LayoutParams(0, -2, 1f));
+        r.addView(text(value, 14, mutedColor, false));
         return r;
     }
 
     TextView chip(int score) {
-        TextView c = text(String.valueOf(score), 12, 0xFFFFFFFF, true);
+        TextView c = text(String.valueOf(score), 12, WHITE, true);
         c.setGravity(Gravity.CENTER);
         c.setBackground(rounded(Scoring.bandColor(score), 6));
         c.setLayoutParams(new LinearLayout.LayoutParams(dp(34), dp(24)));
@@ -170,7 +235,7 @@ final class Ui {
     }
 
     TextView pill(String label, int color) {
-        TextView p = text(label, 12, 0xFFFFFFFF, false);
+        TextView p = text(label, 12, WHITE, false);
         p.setBackground(rounded(color, 10));
         p.setPadding(dp(8), dp(2), dp(8), dp(2));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
@@ -186,45 +251,56 @@ final class Ui {
         r.addView(chip(Scoring.score(p)));
         LinearLayout col = vertical();
         col.setPadding(dp(10), 0, 0, 0);
-        col.addView(text(p.name, 15, text, true));
-        if (!sub.isEmpty()) col.addView(text(sub, 12, weak, false));
+        col.addView(text(p.name, 15, textColor, true));
+        if (!sub.isEmpty()) col.addView(text(sub, 12, mutedColor, false));
         r.addView(col, new LinearLayout.LayoutParams(0, -2, 1f));
         return r;
     }
 
     LinearLayout vertical() {
-        LinearLayout l = new LinearLayout(a);
+        LinearLayout l = new LinearLayout(activity);
         l.setOrientation(LinearLayout.VERTICAL);
         return l;
     }
 
     LinearLayout horizontal() {
-        LinearLayout l = new LinearLayout(a);
+        LinearLayout l = new LinearLayout(activity);
         l.setOrientation(LinearLayout.HORIZONTAL);
         l.setGravity(Gravity.CENTER_VERTICAL);
         return l;
     }
 
     View gap(int dpSize) {
-        View v = new View(a);
+        View v = new View(activity);
         v.setLayoutParams(new ViewGroup.LayoutParams(dp(dpSize), dp(dpSize)));
         return v;
     }
 
     GradientDrawable rounded(int color, int radiusDp) {
-        GradientDrawable d = new GradientDrawable();
-        d.setColor(color);
-        d.setCornerRadius(dp(radiusDp));
-        return d;
+        return rounded(activity, color, radiusDp);
     }
 
     void hideKeyboard(View v) {
-        InputMethodManager imm = (InputMethodManager) a.getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm =
+                (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
     }
 
     int dp(int v) {
-        return Math.round(v * a.getResources().getDisplayMetrics().density);
+        return dp(activity, v);
+    }
+
+    // ---- theme-free helpers (also used by the camera screen) ------------------
+
+    static int dp(Context c, int v) {
+        return Math.round(v * c.getResources().getDisplayMetrics().density);
+    }
+
+    static GradientDrawable rounded(Context c, int color, int radiusDp) {
+        GradientDrawable d = new GradientDrawable();
+        d.setColor(color);
+        d.setCornerRadius(dp(c, radiusDp));
+        return d;
     }
 
     static String fmt(float v, int decimals) {

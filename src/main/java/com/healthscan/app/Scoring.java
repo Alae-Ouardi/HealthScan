@@ -11,6 +11,10 @@ final class Scoring {
     static final int BAND_EXCELLENT = 75, BAND_GOOD = 50, BAND_POOR = 25;
     static final int ALT_MIN_GAIN = 15, ALT_COUNT = 3;
 
+    /** Band colors (ARGB), worst to best; the brand green is the "excellent" color. */
+    static final int COLOR_BAD = 0xFFD63830, COLOR_POOR = 0xFFED9628,
+            COLOR_GOOD = 0xFF8CBE3C, COLOR_EXCELLENT = 0xFF22A048;
+
     static int score(Product p) {
         return p.food ? food(p) : cosmetic(p);
     }
@@ -31,22 +35,31 @@ final class Scoring {
 
     private static int cosmetic(Product p) {
         float penalty = 0f;
-        for (Product.Ingredient i : p.ingredients) {
-            penalty += i.hazard == 2 ? COSMETIC_HIGH : i.hazard == 1 ? COSMETIC_MOD : COSMETIC_LOW;
-        }
+        for (Product.Ingredient i : p.ingredients) penalty += hazardPenalty(i.hazard);
         return Math.round(clamp(100f - penalty, 0f, 100f));
     }
 
+    private static float hazardPenalty(int hazard) {
+        switch (hazard) {
+            case Product.Ingredient.HIGH: return COSMETIC_HIGH;
+            case Product.Ingredient.MODERATE: return COSMETIC_MOD;
+            default: return COSMETIC_LOW;
+        }
+    }
+
     static String bandLabel(int s) {
-        return s >= BAND_EXCELLENT ? "Excellent" : s >= BAND_GOOD ? "Good" : s >= BAND_POOR ? "Poor" : "Bad";
+        if (s >= BAND_EXCELLENT) return "Excellent";
+        if (s >= BAND_GOOD) return "Good";
+        if (s >= BAND_POOR) return "Poor";
+        return "Bad";
     }
 
     /** Red -> green band color (ARGB). */
     static int bandColor(int s) {
-        if (s >= BAND_EXCELLENT) return 0xFF22A048;
-        if (s >= BAND_GOOD) return 0xFF8CBE3C;
-        if (s >= BAND_POOR) return 0xFFED9628;
-        return 0xFFD63830;
+        if (s >= BAND_EXCELLENT) return COLOR_EXCELLENT;
+        if (s >= BAND_GOOD) return COLOR_GOOD;
+        if (s >= BAND_POOR) return COLOR_POOR;
+        return COLOR_BAD;
     }
 
     private static float clamp(float v, float lo, float hi) {

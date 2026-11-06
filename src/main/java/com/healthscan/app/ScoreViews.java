@@ -29,7 +29,7 @@ final class ScoreViews {
             canvas.drawCircle(cx, cy, r, paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(r * 0.07f);
-            paint.setColor(0xFFFFFFFF);
+            paint.setColor(Ui.WHITE);
             canvas.drawCircle(cx, cy, r, paint);
             paint.setStyle(Paint.Style.FILL);
             paint.setTextAlign(Paint.Align.CENTER);
@@ -43,7 +43,8 @@ final class ScoreViews {
 
     /** Four colored segments with a pointer above the score position. */
     static final class Scale extends View {
-        private static final int[] BANDS = {0xFFD63830, 0xFFED9628, 0xFF8CBE3C, 0xFF22A048};
+        private static final int[] BANDS = {
+            Scoring.COLOR_BAD, Scoring.COLOR_POOR, Scoring.COLOR_GOOD, Scoring.COLOR_EXCELLENT};
         private final int score;
         private final int pointerColor;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);

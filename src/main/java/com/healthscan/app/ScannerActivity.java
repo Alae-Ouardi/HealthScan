@@ -2,11 +2,11 @@ package com.healthscan.app;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.drawable.GradientDrawable;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -145,7 +145,7 @@ public final class ScannerActivity extends Activity
             camera.setParameters(p);
             Camera.CameraInfo info = new Camera.CameraInfo();
             Camera.getCameraInfo(id, info);
-            camera.setDisplayOrientation(info.orientation % 360); // screen is locked to portrait
+            camera.setDisplayOrientation(info.orientation); // screen is locked to portrait
             camera.setPreviewDisplay(surface.getHolder());
             camera.setPreviewCallback(this);
             camera.startPreview();
@@ -250,27 +250,25 @@ public final class ScannerActivity extends Activity
         Button b = new Button(this);
         b.setText(label);
         b.setAllCaps(false);
-        b.setTextColor(0xFFFFFFFF);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(0x99000000);
-        bg.setCornerRadius(dp(22));
-        b.setBackground(bg);
+        b.setTextColor(Ui.WHITE);
+        b.setBackground(Ui.rounded(this, 0x99000000, 22));
         b.setPadding(dp(16), dp(8), dp(16), dp(8));
         return b;
     }
 
     private int dp(int v) {
-        return Math.round(v * getResources().getDisplayMetrics().density);
+        return Ui.dp(this, v);
     }
 
     /** Dims the screen around a scan window and draws the white corner frame. */
     private static final class ScanFrame extends View {
+        private static final int SCAN_LINE = 0xCC000000 | (Scoring.COLOR_EXCELLENT & 0x00FFFFFF);
         private final Paint dim = new Paint(), line = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        ScanFrame(android.content.Context c) {
+        ScanFrame(Context c) {
             super(c);
             dim.setColor(0x88000000);
-            line.setColor(0xFFFFFFFF);
+            line.setColor(Ui.WHITE);
             line.setStyle(Paint.Style.STROKE);
             line.setStrokeCap(Paint.Cap.ROUND);
         }
@@ -286,7 +284,7 @@ public final class ScannerActivity extends Activity
             c.drawRect(r, t, w, b, dim);
             float k = fw * 0.12f;
             line.setStrokeWidth(w * 0.012f);
-            line.setColor(0xFFFFFFFF);
+            line.setColor(Ui.WHITE);
             c.drawLine(l, t, l + k, t, line);
             c.drawLine(l, t, l, t + k, line);
             c.drawLine(r, t, r - k, t, line);
@@ -296,7 +294,7 @@ public final class ScannerActivity extends Activity
             c.drawLine(r, b, r - k, b, line);
             c.drawLine(r, b, r, b - k, line);
             line.setStrokeWidth(w * 0.005f);
-            line.setColor(0xCC22A048);
+            line.setColor(SCAN_LINE);
             float mid = (t + b) / 2f;
             c.drawLine(l + k * 0.6f, mid, r - k * 0.6f, mid, line);
         }

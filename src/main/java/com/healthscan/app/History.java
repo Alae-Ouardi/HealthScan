@@ -2,10 +2,12 @@ package com.healthscan.app;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -75,31 +77,37 @@ final class History {
     // ---- storage -------------------------------------------------------------
 
     private void load() {
+        JSONArray arr;
         try {
-            JSONArray arr = new JSONArray(prefs.getString(KEY, "[]"));
-            for (int i = 0; i < arr.length(); i++) {
+            arr = new JSONArray(prefs.getString(KEY, "[]"));
+        } catch (JSONException e) {
+            Log.w(AppInfo.LOG_TAG, "saved history unreadable, starting fresh", e);
+            return;
+        }
+        for (int i = 0; i < arr.length() && entries.size() < MAX_ENTRIES; i++) {
+            try {
                 JSONObject o = arr.getJSONObject(i);
                 entries.add(new Entry(fromJson(o.getJSONObject("p")), o.optLong("t")));
+            } catch (JSONException e) {
+                Log.w(AppInfo.LOG_TAG, "skipping damaged history entry " + i, e); // keep the rest
             }
-        } catch (Exception e) {
-            entries.clear(); // unreadable history: start fresh rather than crash
         }
     }
 
     private void save() {
-        try {
-            JSONArray arr = new JSONArray();
-            for (Entry e : entries) {
+        JSONArray arr = new JSONArray();
+        for (Entry e : entries) {
+            try {
                 arr.put(new JSONObject().put("t", e.time).put("p", toJson(e.product)));
+            } catch (JSONException ex) {
+                Log.w(AppInfo.LOG_TAG, "not saving unstorable product " + e.product.code, ex);
             }
-            prefs.edit().putString(KEY, arr.toString()).apply();
-        } catch (Exception ignored) {
-            // JSONObject.put only throws for NaN numbers, which scores never produce
         }
+        prefs.edit().putString(KEY, arr.toString()).apply();
     }
 
     /** Product as JSON; also used to hand a product to the product page. */
-    static JSONObject toJson(Product p) throws Exception {
+    static JSONObject toJson(Product p) throws JSONException {
         JSONObject o = new JSONObject().put("code", p.code).put("name", p.name)
                 .put("brand", p.brand).put("food", p.food).put("organic", p.organic)
                 .put("img", p.imageUrl);
@@ -119,12 +127,14 @@ final class History {
         return o.put("a", adds).put("i", ings);
     }
 
-    static Product fromJson(JSONObject o) throws Exception {
+    static Product fromJson(JSONObject o) throws JSONException {
         Product.Nutrition n = null;
         JSONArray na = o.optJSONArray("n");
         if (na != null) {
-            n = new Product.Nutrition((float) na.getDouble(0), (float) na.getDouble(1),
-                    (float) na.getDouble(2), (float) na.getDouble(3), (float) na.getDouble(4));
+            // cleaned again on the way in: the product page also reads products through here
+            n = new Product.Nutrition(OpenFacts.amount(na.getDouble(0)), OpenFacts.amount(na.getDouble(1)),
+                    OpenFacts.amount(na.getDouble(2)), OpenFacts.amount(na.getDouble(3)),
+                    OpenFacts.amount(na.getDouble(4)));
         }
         Product p = new Product(o.getString("code"), o.getString("name"), o.optString("brand"),
                 o.getBoolean("food"), o.optBoolean("organic"), n, o.optString("img"));

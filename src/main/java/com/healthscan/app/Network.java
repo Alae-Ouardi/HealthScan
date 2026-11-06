@@ -9,8 +9,6 @@ import android.util.Log;
 
 /** Tells whether the phone has internet, and reports changes on the main thread. */
 final class Network {
-    private static final String TAG = "HealthScan";
-
     private final ConnectivityManager cm;
     private final Handler main = new Handler(Looper.getMainLooper());
     private ConnectivityManager.NetworkCallback callback;
@@ -62,7 +60,7 @@ final class Network {
         try {
             cm.registerDefaultNetworkCallback(callback);
         } catch (RuntimeException e) {
-            Log.w(TAG, "cannot watch connectivity", e);
+            Log.w(AppInfo.LOG_TAG, "cannot watch connectivity", e);
             callback = null;
         }
     }
@@ -78,7 +76,7 @@ final class Network {
         try {
             cm.unregisterNetworkCallback(callback);
         } catch (RuntimeException e) {
-            Log.w(TAG, "connectivity watch already stopped", e);
+            Log.w(AppInfo.LOG_TAG, "connectivity watch already stopped", e);
         }
         callback = null;
     }

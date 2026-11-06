@@ -6,10 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.util.LruCache;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,10 +22,10 @@ final class ImageLoader {
         void onResult(Bitmap bitmap);
     }
 
-    private static final String TAG = "HealthScan";
     private static final int TIMEOUT_MS = 8000;
     private static final int MAX_BYTES = 4 * 1024 * 1024; // refuse oversized downloads
     private static final int CACHE_KB = 8 * 1024;
+    private static final int HTTP_OK = 200;
 
     private static final ExecutorService POOL = Executors.newFixedThreadPool(2);
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
@@ -58,27 +55,19 @@ final class ImageLoader {
     }
 
     private static Bitmap download(String url, int maxPx) {
-        HttpURLConnection c = null;
         try {
-            c = (HttpURLConnection) new URL(url).openConnection();
-            c.setConnectTimeout(TIMEOUT_MS);
-            c.setReadTimeout(TIMEOUT_MS);
-            c.setRequestProperty("User-Agent", "HealthScan/0.1 (personal app)");
-            if (c.getResponseCode() != 200) return null;
-            byte[] data = read(c.getInputStream());
-            if (data == null) return null;
-
+            Http.Response r = Http.get(url, TIMEOUT_MS, MAX_BYTES);
+            if (r.code != HTTP_OK) return null;
             BitmapFactory.Options bounds = new BitmapFactory.Options();
             bounds.inJustDecodeBounds = true;
-            BitmapFactory.decodeByteArray(data, 0, data.length, bounds);
+            BitmapFactory.decodeByteArray(r.body, 0, r.body.length, bounds);
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null; // not an image
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inSampleSize = sampleSize(Math.max(bounds.outWidth, bounds.outHeight), maxPx);
-            return BitmapFactory.decodeByteArray(data, 0, data.length, opts);
-        } catch (Exception e) {
-            Log.w(TAG, "product photo not loaded: " + e.getClass().getSimpleName());
+            return BitmapFactory.decodeByteArray(r.body, 0, r.body.length, opts);
+        } catch (IOException e) {
+            Log.w(AppInfo.LOG_TAG, "product photo not loaded: " + e.getMessage());
             return null;
-        } finally {
-            if (c != null) c.disconnect();
         }
     }
 
@@ -86,15 +75,5 @@ final class ImageLoader {
         int size = 1;
         while (longest / (size * 2) >= maxPx) size *= 2;
         return size;
-    }
-
-    private static byte[] read(InputStream in) throws Exception {
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        byte[] chunk = new byte[8192];
-        for (int r; (r = in.read(chunk)) != -1; ) {
-            buf.write(chunk, 0, r);
-            if (buf.size() > MAX_BYTES) return null;
-        }
-        return buf.toByteArray();
     }
 }
