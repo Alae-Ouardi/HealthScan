@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "values": [
+    {"name": "score min", "group": "scoring", "value": 0, "estimated": true},
+    {"name": "score max", "group": "scoring", "value": 100, "estimated": true},
+    {"name": "food nutrition weight", "group": "scoring", "value": 60, "unit": "points", "estimated": true},
+    {"name": "food additives weight", "group": "scoring", "value": 30, "unit": "points", "estimated": true},
+    {"name": "food organic bonus", "group": "scoring", "value": 10, "unit": "points", "estimated": true},
+    {"name": "sugar penalty", "group": "nutrition", "value": 1.2, "unit": "pts/g", "estimated": true},
+    {"name": "satfat penalty", "group": "nutrition", "value": 1.5, "unit": "pts/g", "estimated": true},
+    {"name": "salt penalty", "group": "nutrition", "value": 6.0, "unit": "pts/g", "estimated": true},
+    {"name": "fiber bonus", "group": "nutrition", "value": 2.0, "unit": "pts/g", "estimated": true},
+    {"name": "protein bonus", "group": "nutrition", "value": 1.0, "unit": "pts/g", "estimated": true},
+    {"name": "risky additive penalty", "group": "additives", "value": 6, "unit": "points", "estimated": true},
+    {"name": "minor additive penalty", "group": "additives", "value": 2, "unit": "points", "estimated": true},
+    {"name": "cosmetic high hazard penalty", "group": "cosmetic", "value": 25, "unit": "points", "estimated": true},
+    {"name": "cosmetic moderate penalty", "group": "cosmetic", "value": 10, "unit": "points", "estimated": true},
+    {"name": "cosmetic low penalty", "group": "cosmetic", "value": 3, "unit": "points", "estimated": true},
+    {"name": "band excellent", "group": "bands", "value": 75, "estimated": true},
+    {"name": "band good", "group": "bands", "value": 50, "estimated": true},
+    {"name": "band poor", "group": "bands", "value": 25, "estimated": true},
+    {"name": "alternative min gain", "group": "alternatives", "value": 15, "unit": "points", "estimated": true},
+    {"name": "alternative count", "group": "alternatives", "value": 3, "estimated": true}
+  ]
+}

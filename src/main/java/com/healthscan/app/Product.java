@@ -1,0 +1,66 @@
+package com.healthscan.app;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/** Product model (see MECHANICS.md). */
+final class Product {
+    static final class Nutrition {
+        final float sugar, satFat, salt, fiber, protein; // grams per 100 g
+
+        Nutrition(float sugar, float satFat, float salt, float fiber, float protein) {
+            this.sugar = sugar;
+            this.satFat = satFat;
+            this.salt = salt;
+            this.fiber = fiber;
+            this.protein = protein;
+        }
+    }
+
+    static final class Additive {
+        final String name;
+        final boolean risky;
+
+        Additive(String name, boolean risky) {
+            this.name = name;
+            this.risky = risky;
+        }
+    }
+
+    /** Cosmetic ingredient; hazard 0 = low, 1 = moderate, 2 = high. */
+    static final class Ingredient {
+        final String name;
+        final int hazard;
+
+        Ingredient(String name, int hazard) {
+            this.name = name;
+            this.hazard = hazard;
+        }
+    }
+
+    final String code, name, brand;
+    final boolean food, organic;
+    final Nutrition nutrition; // null for cosmetics or when unknown
+    final List<Additive> additives = new ArrayList<>();
+    final List<Ingredient> ingredients = new ArrayList<>();
+
+    Product(String code, String name, String brand, boolean food, boolean organic,
+            Nutrition nutrition) {
+        this.code = code;
+        this.name = name;
+        this.brand = brand;
+        this.food = food;
+        this.organic = organic;
+        this.nutrition = nutrition;
+    }
+
+    Product add(String additive, boolean risky) {
+        additives.add(new Additive(additive, risky));
+        return this;
+    }
+
+    Product ing(String ingredient, int hazard) {
+        ingredients.add(new Ingredient(ingredient, hazard));
+        return this;
+    }
+}
