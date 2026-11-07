@@ -43,8 +43,18 @@ final class Scoring {
         switch (hazard) {
             case Product.Ingredient.HIGH: return COSMETIC_HIGH;
             case Product.Ingredient.MODERATE: return COSMETIC_MOD;
-            default: return COSMETIC_LOW;
+            case Product.Ingredient.LOW: return COSMETIC_LOW;
+            default: return 0f; // not rated: no evidence either way
         }
+    }
+
+    /** How many of a cosmetic's ingredients have a HealthScan grade. */
+    static int gradedIngredients(Product p) {
+        int graded = 0;
+        for (Product.Ingredient i : p.ingredients) {
+            if (i.hazard != Product.Ingredient.UNRATED) graded++;
+        }
+        return graded;
     }
 
     static String bandLabel(int s) {

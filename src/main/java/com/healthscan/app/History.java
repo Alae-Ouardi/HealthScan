@@ -144,7 +144,10 @@ final class History {
         }
         JSONArray ings = o.optJSONArray("i");
         for (int i = 0; ings != null && i < ings.length(); i++) {
-            p.ing(ings.getJSONObject(i).getString("n"), ings.getJSONObject(i).getInt("h"));
+            // Re-graded from the name on every load, so saved scans follow the current list
+            // (the stored grade "h" is kept for older app versions only).
+            String name = ings.getJSONObject(i).getString("n");
+            p.ing(name, IngredientGrades.grade(name));
         }
         return p;
     }

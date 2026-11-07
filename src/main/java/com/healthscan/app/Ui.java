@@ -218,9 +218,14 @@ final class Ui {
     }
 
     View row(String label, String value, boolean good) {
+        return row(label, value, good ? GOOD_DOT : BAD_DOT);
+    }
+
+    /** Label on the left, value on the right, preceded by a colored dot. */
+    View row(String label, String value, int dotColor) {
         LinearLayout r = horizontal();
         r.setPadding(0, dp(5), 0, dp(5));
-        r.addView(text("● ", 14, good ? GOOD_DOT : BAD_DOT, false));
+        r.addView(text("● ", 14, dotColor, false));
         r.addView(text(label, 15, textColor, false), new LinearLayout.LayoutParams(0, -2, 1f));
         r.addView(text(value, 14, mutedColor, false));
         return r;

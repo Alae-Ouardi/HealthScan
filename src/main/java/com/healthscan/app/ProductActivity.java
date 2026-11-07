@@ -138,6 +138,11 @@ public final class ProductActivity extends Activity {
         card.addView(ui.gap(12));
         card.addView(new ScoreViews.Scale(this, s, ui.pointer),
                 new LinearLayout.LayoutParams(-1, ui.dp(26)));
+        View note = coverageNote(p);
+        if (note != null) {
+            card.addView(ui.gap(10));
+            card.addView(note);
+        }
         return card;
     }
 
@@ -161,7 +166,7 @@ public final class ProductActivity extends Activity {
         } else {
             if (p.ingredients.isEmpty()) card.addView(ui.row("Ingredients", "not listed", true));
             for (Product.Ingredient i : p.ingredients) {
-                card.addView(ui.row(i.name, hazardLabel(i.hazard), i.hazard == Product.Ingredient.LOW));
+                card.addView(ui.row(i.name, hazardLabel(i.hazard), hazardColor(i.hazard)));
             }
         }
         return card;
@@ -171,8 +176,27 @@ public final class ProductActivity extends Activity {
         switch (hazard) {
             case Product.Ingredient.HIGH: return "high hazard";
             case Product.Ingredient.MODERATE: return "moderate";
-            default: return "low risk";
+            case Product.Ingredient.LOW: return "low risk";
+            default: return "not rated";
         }
+    }
+
+    private int hazardColor(int hazard) {
+        switch (hazard) {
+            case Product.Ingredient.HIGH: return Ui.BAD_DOT;
+            case Product.Ingredient.MODERATE: return Ui.WARNING;
+            case Product.Ingredient.LOW: return Ui.GOOD_DOT;
+            default: return ui.mutedColor;
+        }
+    }
+
+    /** For cosmetics where most ingredients have no grade, says what the score rests on. */
+    private View coverageNote(Product p) {
+        int total = p.ingredients.size();
+        int graded = Scoring.gradedIngredients(p);
+        if (p.food || total == 0 || graded * 2 >= total) return null;
+        return ui.text("Based on " + graded + " of " + total
+                + " ingredients. The others aren't rated yet.", 13, ui.mutedColor, false);
     }
 
     /** Better products of the same kind among the ones already scanned. */

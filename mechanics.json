@@ -16,6 +16,8 @@
     {"name": "cosmetic high hazard penalty", "group": "cosmetic", "value": 25, "unit": "points", "estimated": true},
     {"name": "cosmetic moderate penalty", "group": "cosmetic", "value": 10, "unit": "points", "estimated": true},
     {"name": "cosmetic low penalty", "group": "cosmetic", "value": 3, "unit": "points", "estimated": true},
+    {"name": "cosmetic not rated penalty", "group": "cosmetic", "value": 0, "unit": "points", "estimated": true},
+    {"name": "cosmetic coverage note below", "group": "cosmetic", "value": 0.5, "unit": "share of rated ingredients", "estimated": true},
     {"name": "band excellent", "group": "bands", "value": 75, "estimated": true},
     {"name": "band good", "group": "bands", "value": 50, "estimated": true},
     {"name": "band poor", "group": "bands", "value": 25, "estimated": true},

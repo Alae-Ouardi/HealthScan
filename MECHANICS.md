@@ -21,7 +21,28 @@ Overall score is 0–100, higher = healthier, shown on a red→orange→yellow�
 
 ### Cosmetic score (estimated)
 - Start 100. Subtract 25 per high-hazard ingredient, 10 per moderate, 3 per low.
+- Ingredients that are **not rated** subtract nothing.
 - Clamp 0–100.
+- When fewer than half of the ingredients are rated, the product page says
+  "Based on X of Y ingredients".
+
+### Cosmetic ingredient grades (estimated)
+Open Beauty Facts lists ingredients but gives no risk grade, so HealthScan matches each
+ingredient name against its own list (`IngredientGrades.java`). Names are compared without
+case, accents or punctuation, and every alias counts ("Aqua (Water)", "Aqua/Water/Eau").
+When several names are given, the worst grade wins. Anything not on the list is **not rated**.
+
+| Grade | Examples | Why |
+|---|---|---|
+| Low | water/aqua, glycerin, sodium chloride, citric acid, panthenol, plant butters and oils, polyquaterniums | Common, well tolerated ingredients |
+| Moderate | parfum/fragrance and the EU-declared fragrance allergens (limonene, linalool…), sodium lauryl/laureth sulfate, phenoxyethanol, PEG and "-eth" ingredients (e.g. ceteareth-20), methyl- and ethylparaben | Known irritants or sensitisers, or worth limiting |
+| High | propyl-, butyl- and other long-chain parabens, formaldehyde and formaldehyde releasers (DMDM hydantoin, quaternium-15…), methylisothiazolinone, triclosan, benzophenone-3 | Restricted or banned in EU cosmetics, strong allergens, or suspected endocrine disruptors |
+
+The grades are HealthScan's own simplification, informed by public sources: the EU
+Cosmetics Regulation (EC) No 1223/2009 annexes (banned and restricted substances, labelled
+fragrance allergens) and opinions of the EU Scientific Committee on Consumer Safety (SCCS).
+They are not medical advice. Saved scans are re-graded from their ingredient names when
+loaded, so changes to the list apply to past scans too.
 
 ### Rating bands (estimated)
 - 75–100 → "Excellent" (green)

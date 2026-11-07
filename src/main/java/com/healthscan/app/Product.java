@@ -27,9 +27,12 @@ final class Product {
         }
     }
 
-    /** Cosmetic ingredient with a hazard level: {@link #LOW}, {@link #MODERATE} or {@link #HIGH}. */
+    /**
+     * Cosmetic ingredient with a hazard level: {@link #LOW}, {@link #MODERATE}, {@link #HIGH},
+     * or {@link #UNRATED} when HealthScan has no grade for it. Ordered: a larger value is worse.
+     */
     static final class Ingredient {
-        static final int LOW = 0, MODERATE = 1, HIGH = 2;
+        static final int UNRATED = -1, LOW = 0, MODERATE = 1, HIGH = 2;
 
         final String name;
         final int hazard;

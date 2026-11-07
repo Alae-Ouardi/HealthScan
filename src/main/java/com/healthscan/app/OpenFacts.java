@@ -82,8 +82,8 @@ final class OpenFacts {
             for (int i = 0; ings != null && i < ings.length() && i < MAX_INGREDIENTS; i++) {
                 JSONObject ing = ings.optJSONObject(i);
                 String text = ing == null ? "" : clip(ing.optString("text"), MAX_ITEM_CHARS);
-                // open data has no hazard grade: moderate
-                if (!text.isEmpty()) out.ing(text, Product.Ingredient.MODERATE);
+                // open data has no hazard grade: HealthScan's own list decides (or "not rated")
+                if (!text.isEmpty()) out.ing(text, IngredientGrades.grade(text));
             }
         }
         return out;
